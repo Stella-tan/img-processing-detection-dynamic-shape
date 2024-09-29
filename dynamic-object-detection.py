@@ -5,8 +5,12 @@ from PIL import Image
 import random
 
 # Function to process uploaded image
-def process_image(image):
+def process_image(uploaded_file):
     try:
+        # Decode the uploaded image using OpenCV
+        image = np.array(Image.open(uploaded_file).convert('RGB'))
+        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+
         # Resize the image for display if necessary
         max_width = 800
         height, width = image.shape[:2]
@@ -103,23 +107,6 @@ st.title("Image Upload and Object Classification")
 # Image upload option
 uploaded_file = st.file_uploader("Upload an image", type=["jpg", "jpeg", "png"])
 
-# Option to use the camera
-use_camera = st.checkbox("Use Camera")
-
+# Process and display the image if an image is uploaded
 if uploaded_file is not None:
-    # Process and display the uploaded image
-    image = np.array(Image.open(uploaded_file).convert('RGB'))
-    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-    process_image(image)
-
-elif use_camera:
-    # Open camera and capture a frame
-    cap = cv2.VideoCapture(0)
-    if st.button("Capture Image"):
-        ret, frame = cap.read()
-        if ret:
-            st.image(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), caption="Captured Image", use_column_width=True)
-            process_image(frame)
-        else:
-            st.error("Failed to capture image from camera")
-    cap.release()
+    process_image(uploaded_file)

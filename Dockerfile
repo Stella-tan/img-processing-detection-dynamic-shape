@@ -15,4 +15,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Command to run your Streamlit app
-CMD ["streamlit", "run", "your_script_name.py", "--server.port=8501", "--server.address=0.0.0.0"]
+CMD ["streamlit", "run", "dynamic-object-detection.py", "--server.port=8501", "--server.address=0.0.0.0"]

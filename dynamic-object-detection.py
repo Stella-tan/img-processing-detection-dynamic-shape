@@ -4,6 +4,8 @@ import streamlit as st
 from PIL import Image
 import matplotlib.pyplot as plt
 import random
+import streamlit as st
+from streamlit_webrtc import VideoTransformerBase, webrtc_streamer
 
 # Global variable for minimum area
 min_area = 1000
@@ -264,19 +266,39 @@ def process_dynamicImage(image):
     except Exception as e:
         st.error(f"An error occurred while processing the image: {e}")
 
+# Function to detect circles in an image
+def dice_detection(image):
+    # Convert to RGB for plotting later
+    rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
+    # Convert to grayscale
+    gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
+    # Edge detection with Canny
+    detected_edges = cv2.Canny(gray_img, 20, 210, 3)  # Make edge detection less sensitive
 
+    # Apply morphological closing to close gaps in edges
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))  # Smaller kernel for finer details
+    close = cv2.morphologyEx(detected_edges, cv2.MORPH_CLOSE, kernel, iterations=1)  # Fewer iterations
 
+    # Detect circles using Hough Circle Transform
+    circles = cv2.HoughCircles(close, cv2.HOUGH_GRADIENT, 1.0, 25, param1=50, param2=20, minRadius=1, maxRadius=70)
 
+    # Check if circles are detected
+    if circles is not None:
+        circles = circles[0, :]
+        # Draw detected circles on the RGB image
+        for i in circles:
+            # Draw the outer circle
+            cv2.circle(rgb_img, (int(i[0]), int(i[1])), int(i[2]), (0, 255, 0), 2)
+            # Draw the center of the circle
+            cv2.circle(rgb_img, (int(i[0]), int(i[1])), 2, (0, 0, 255), 3)
 
+        # Put the score (number of detected circles) on the image
+        score_position = (30, 50)  # Coordinates to place the score text
+        cv2.putText(rgb_img, f'Score: {len(circles)}', score_position, cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
-
-
-
-
-
-
+    return rgb_img, len(circles) if circles is not None else 0
 
 
 
@@ -286,12 +308,17 @@ def process_dynamicImage(image):
 st.title("Image Analysis Tool")
 
 # Option selection
-option = st.selectbox("Choose Detection Option", ("Rectangle Detection", "Coin Counting", "Count Many Objects", "Dynamic Object Classification"))
+option = st.selectbox("Choose Detection Option", 
+                       ("Rectangle Detection", 
+                        "Coin Counting", 
+                        "Count Many Objects", 
+                        "Dynamic Object Classification",
+                        "Dice Detection")) 
 
 # Upload an image
 uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png", "bmp", "tiff"])
 
-# Parameters for count many objects
+# Parameters for Count Many Objects
 threshold_value = st.slider("Threshold Value", 0, 255, 127)
 min_area_input = st.number_input("Minimum Area (pixels)", min_value=1, value=100)
 
@@ -304,31 +331,30 @@ if uploaded_file is not None:
     st.image(image, channels="BGR", caption="Uploaded Image", use_column_width=True)
 
     if option == "Rectangle Detection":
-        # Detect rectangles
+        # Detect rectangles in uploaded image
         output_img, rectangle_count = rectangle_detection(image, min_area_input)
-
-        # Show the image with rectangles detected
         st.image(output_img, channels="BGR", caption=f"Detected Rectangles: {rectangle_count}", use_column_width=True)
 
     elif option == "Coin Counting":
-        # Count coins
+        # Count coins (function assumed to be defined)
         output_img_color, object_count, total_value, count_50sen, count_20sen, count_10sen, count_5sen = upload_image_coin_counting(image)
-
-        # Show the image with coins counted
         st.image(output_img_color, channels="BGR", caption="Coin Counting Results", use_column_width=True)
-
-        # Display results
         st.write(f"Total number of coins found: {object_count}")
         st.write(f"Total value of the coins: RM {total_value:.2f}")
         st.write(f"50 sen coins: {count_50sen}, 20 sen coins: {count_20sen}, 10 sen coins: {count_10sen}, 5 sen coins: {count_5sen}")
 
     elif option == "Count Many Objects":
-        # Count many objects
+        # Count many objects (function assumed to be defined)
         output_img, object_count = count_manyObjects(image, threshold_value, min_area_input)
-
-        # Show the image with objects counted
         st.image(output_img, channels="BGR", caption=f"Total Objects: {object_count}", use_column_width=True)
 
     elif option == "Dynamic Object Classification":
-        # Process and classify dynamic objects
+        # Process and classify dynamic objects (function assumed to be defined)
         process_dynamicImage(image)
+
+    elif option == "Dice Detection":
+        # Detect circles
+        output_img, circle_count = dice_detection(image)
+        
+        # Show the image with detected circles
+        st.image(output_img, caption=f"Detected Circles: {circle_count}", use_column_width=True)

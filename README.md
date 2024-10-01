@@ -1,19 +1,11 @@
-# 🎈 Blank app template
+Steamlit 
+Upload image to test on: 
+Image Processing : 
+- Rectangle Detection
+- Coin Detection
+- Dynamic Shape Detection
+- Circle (Dice) Detection
 
-A simple Streamlit app template for you to modify!
+1. Run the requirements.txt file first to install all the required library
+2. Run the py file in the streamlit.
 
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://blank-app-template.streamlit.app/)
-
-### How to run it on your own machine
-
-1. Install the requirements
-
-   ```
-   $ pip install -r requirements.txt
-   ```
-
-2. Run the app
-
-   ```
-   $ streamlit run streamlit_app.py
-   ```
